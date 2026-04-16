@@ -1,15 +1,11 @@
 import { useState } from 'react';
-import type { OrderStatus } from '../types';
+import type { OrderStatus } from '../types/orders';
 import { useOrders } from '../hooks/useOrders';
 import { useOrderStats } from '../hooks/useOrderStats';
 import { useOrdersRealtime } from '../hooks/useOrdersRealtime';
-import { StatsStrip } from './StatsStrip';
-import { StatusFilter } from './StatusFilter';
-import { OrderCard } from './OrderCard';
-import { SkeletonGrid } from './SkeletonGrid';
-import { ErrorMessage } from '../../../shared/components/ErrorMessage';
-import { EmptyState } from '../../../shared/components/EmptyState';
-import { formatDay } from '../../../shared/utils/formatters';
+import { StatsStrip, StatusFilter, OrderCard, SkeletonGrid, ErrorMessage, EmptyState } from '../components';
+import { formatDay } from '../utils/formatters';
+import { getErrorMessage } from '../lib/errors';
 
 export function OrderDashboard() {
   const [statusFilter, setStatusFilter] = useState<OrderStatus | undefined>();
@@ -25,12 +21,11 @@ export function OrderDashboard() {
     updateError,
   } = useOrders({ status: statusFilter });
 
-  const { data: stats } = useOrderStats();
+  const { stats } = useOrderStats();
 
   useOrdersRealtime();
 
-  const errorMessage =
-    error instanceof Error ? error.message : 'Failed to load orders.';
+  const errorMessage = getErrorMessage(error);
 
   const totalAll = stats
     ? stats.pending + stats.preparing + stats.ready + stats.completed + stats.cancelled
@@ -92,7 +87,7 @@ export function OrderDashboard() {
 
         {updateError && (
           <div className="mb-5">
-            <ErrorMessage message="Status update failed — changes reverted. Please try again." />
+            <ErrorMessage message={getErrorMessage(updateError)} />
           </div>
         )}
 

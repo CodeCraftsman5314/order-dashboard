@@ -1,5 +1,10 @@
-import { OrderDashboard } from '../features/orders/components/OrderDashboard';
+import { OrderDashboard } from '../pages/OrderDashboard';
+import { ErrorBoundary } from '../components';
 
 export function App() {
-  return <OrderDashboard />;
+  return (
+    <ErrorBoundary>
+      <OrderDashboard />
+    </ErrorBoundary>
+  );
 }

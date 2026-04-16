@@ -1,35 +1,36 @@
-import { memo } from 'react';
-import type { Order, OrderStatus } from '../types';
-import { getNextStatus, STATUS_LABELS } from '../types';
-import { StatusBadge } from './StatusBadge';
-import { formatCents, formatTimeSince, getAgeMinutes } from '../../../shared/utils/formatters';
+import clsx from 'clsx';
+import { OrderStatus } from '../../types/orders';
+import { getNextStatus, STATUS_LABELS } from '../../types/orders';
+import { StatusBadge } from '../StatusBadge';
+import { formatCents, formatTimeSince, getAgeMinutes } from '../../utils/formatters';
+import type { OrderCardProps } from './types';
 
 const STATUS_BORDER: Record<OrderStatus, string> = {
-  pending:   'border-l-amber-400',
-  preparing: 'border-l-blue-400',
-  ready:     'border-l-emerald-400',
-  completed: 'border-l-zinc-700',
-  cancelled: 'border-l-red-500',
+  [OrderStatus.Pending]:   'border-l-amber-400',
+  [OrderStatus.Preparing]: 'border-l-blue-400',
+  [OrderStatus.Ready]:     'border-l-emerald-400',
+  [OrderStatus.Completed]: 'border-l-zinc-700',
+  [OrderStatus.Cancelled]: 'border-l-red-500',
 };
 
 const STATUS_GLOW: Record<OrderStatus, string> = {
-  pending:   'from-amber-500/5',
-  preparing: 'from-blue-500/5',
-  ready:     'from-emerald-500/5',
-  completed: 'from-zinc-500/3',
-  cancelled: 'from-red-500/5',
+  [OrderStatus.Pending]:   'from-amber-500/5',
+  [OrderStatus.Preparing]: 'from-blue-500/5',
+  [OrderStatus.Ready]:     'from-emerald-500/5',
+  [OrderStatus.Completed]: 'from-zinc-500/3',
+  [OrderStatus.Cancelled]: 'from-red-500/5',
 };
 
 const ADVANCE_BTN: Partial<Record<OrderStatus, string>> = {
-  pending:   'bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-900/40',
-  preparing: 'bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-900/40',
-  ready:     'bg-zinc-700 hover:bg-zinc-600 shadow-lg shadow-black/30',
+  [OrderStatus.Pending]:   'bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-900/40',
+  [OrderStatus.Preparing]: 'bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-900/40',
+  [OrderStatus.Ready]:     'bg-zinc-700 hover:bg-zinc-600 shadow-lg shadow-black/30',
 };
 
 type UrgencyLevel = 'urgent' | 'warning' | 'normal';
 
 function getUrgency(createdAt: string, status: OrderStatus): UrgencyLevel {
-  if (status === 'completed' || status === 'cancelled') return 'normal';
+  if (status === OrderStatus.Completed || status === OrderStatus.Cancelled) return 'normal';
   const age = getAgeMinutes(createdAt);
   if (age >= 15) return 'urgent';
   if (age >= 8) return 'warning';
@@ -49,40 +50,32 @@ function Avatar({ name }: { name: string }) {
       ? `${parts[0][0]}${parts[parts.length - 1][0]}`
       : parts[0].substring(0, 2);
   return (
-    <div className="flex h-8 w-8 flex-shrink-0 select-none items-center justify-center rounded-full bg-zinc-800 text-xs font-bold text-zinc-300 ring-1 ring-white/8">
+    <div className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-zinc-800 text-xs font-bold text-zinc-300 ring-1 ring-white/8">
       {letters.toUpperCase()}
     </div>
   );
 }
 
-interface OrderCardProps {
-  order: Order;
-  onAdvanceStatus: (id: string, nextStatus: OrderStatus) => void;
-  isUpdating: boolean;
-}
-
-export const OrderCard = memo(function OrderCard({
+export function OrderCard({
   order,
   onAdvanceStatus,
   isUpdating,
 }: OrderCardProps) {
   const nextStatus = getNextStatus(order.status);
-  const btnClass   = nextStatus ? ADVANCE_BTN[order.status] : undefined;
   const urgency    = getUrgency(order.createdAt, order.status);
-  const timeText   = formatTimeSince(order.createdAt);
 
   return (
     <article
-      className={[
+      className={clsx(
         'relative overflow-hidden rounded-2xl',
-        'bg-gradient-to-br', STATUS_GLOW[order.status], 'to-zinc-900',
+        'bg-linear-to-br', STATUS_GLOW[order.status], 'to-zinc-900',
         'border border-zinc-800 border-l-accent', STATUS_BORDER[order.status],
         'shadow-card transition-all duration-200',
         isUpdating
           ? 'scale-[0.99] opacity-50'
           : 'hover:-translate-y-0.5 hover:shadow-card-hover hover:border-zinc-700',
         'animate-fade-in',
-      ].join(' ')}
+      )}
     >
       <div className="p-4">
         <div className="flex items-start gap-3">
@@ -113,8 +106,8 @@ export const OrderCard = memo(function OrderCard({
                 </svg>
               )}
 
-              <span className={`text-xs ${URGENCY_TIME_CLASS[urgency]}`}>
-                {timeText}
+              <span className={clsx('text-xs', URGENCY_TIME_CLASS[urgency])}>
+                {formatTimeSince(order.createdAt)}
               </span>
             </div>
           </div>
@@ -128,10 +121,10 @@ export const OrderCard = memo(function OrderCard({
               <span className="min-w-0 flex-1 truncate text-sm text-zinc-400">
                 {item.name}
               </span>
-              <span className="flex-shrink-0 rounded-md bg-zinc-800/60 px-1.5 py-0.5 text-badge font-medium tabular-nums text-zinc-500">
+              <span className="shrink-0 rounded-md bg-zinc-800/60 px-1.5 py-0.5 text-badge font-medium tabular-nums text-zinc-500">
                 &times;{item.quantity}
               </span>
-              <span className="w-14 flex-shrink-0 text-right text-sm tabular-nums text-zinc-300">
+              <span className="w-14 shrink-0 text-right text-sm tabular-nums text-zinc-300">
                 {formatCents(item.price * item.quantity)}
               </span>
             </li>
@@ -148,17 +141,17 @@ export const OrderCard = memo(function OrderCard({
             </p>
           </div>
 
-          {nextStatus && btnClass && (
+          {nextStatus && (
             <button
               onClick={() => onAdvanceStatus(order.id, nextStatus)}
               disabled={isUpdating}
-              className={[
+              className={clsx(
                 'flex items-center gap-2 rounded-xl px-3.5 py-2',
                 'text-xs font-semibold text-white',
                 'transition-all duration-150 active:scale-95',
                 'disabled:cursor-not-allowed disabled:opacity-40',
-                btnClass,
-              ].join(' ')}
+                ADVANCE_BTN[order.status],
+              )}
             >
               {isUpdating ? (
                 <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -186,4 +179,4 @@ export const OrderCard = memo(function OrderCard({
       </div>
     </article>
   );
-});
+}

@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchOrderStats } from '../services/ordersApi';
+import { fetchOrderStats } from '../api/ordersApi';
 
 export function useOrderStats() {
-  return useQuery({
+  const { data: stats, isLoading } = useQuery({
     queryKey: ['orders', 'stats'],
     queryFn: fetchOrderStats,
-    refetchInterval: 10_000,
   });
+  return { stats, isLoading };
 }

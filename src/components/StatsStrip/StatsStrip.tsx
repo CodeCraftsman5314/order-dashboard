@@ -1,4 +1,5 @@
-import { useOrderStats } from '../hooks/useOrderStats';
+import clsx from 'clsx';
+import { useOrderStats } from '../../hooks/useOrderStats';
 
 const METRICS = [
   {
@@ -58,26 +59,26 @@ function StatCard({
 }) {
   return (
     <div
-      className={[
+      className={clsx(
         'relative overflow-hidden rounded-xl border border-zinc-800 border-l-accent',
         border,
-        'bg-gradient-to-br',
+        'bg-linear-to-br',
         bg,
         'to-zinc-900 p-4',
         'shadow-card transition-shadow duration-200 hover:shadow-card-hover',
-      ].join(' ')}
+      )}
     >
       <div className="flex items-start justify-between">
         <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">
           {label}
         </p>
-        <span className={`${valueClass} opacity-60`}>{icon}</span>
+        <span className={clsx(valueClass, 'opacity-60')}>{icon}</span>
       </div>
 
       {loading ? (
         <div className="mt-2 h-8 w-10 rounded-md skeleton" />
       ) : (
-        <p className={`mt-1.5 text-3xl font-bold tabular-nums ${valueClass}`}>
+        <p className={clsx('mt-1.5 text-3xl font-bold tabular-nums', valueClass)}>
           {value ?? 0}
         </p>
       )}
@@ -86,10 +87,10 @@ function StatCard({
 }
 
 export function StatsStrip() {
-  const { data: stats, isLoading } = useOrderStats();
+  const { stats, isLoading } = useOrderStats();
 
   const total = stats
-    ? stats.pending + stats.preparing + stats.ready + stats.completed + stats.cancelled
+    ? Object.values(stats).reduce((sum, n) => sum + n, 0)
     : undefined;
 
   return (
@@ -98,7 +99,7 @@ export function StatsStrip() {
         <StatCard
           key={key}
           label={label}
-          value={stats?.[key]}
+          value={stats ? stats[key] : undefined}
           border={border}
           valueClass={value}
           bg={bg}

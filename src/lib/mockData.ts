@@ -1,4 +1,5 @@
-import type { Order, OrderStatus } from '../features/orders/types';
+import { OrderStatus } from '../types/orders';
+import type { Order } from '../types/orders';
 
 const GUEST_NAMES = [
   'Alice Johnson',
@@ -54,14 +55,14 @@ function makeOrder(id: string, status: OrderStatus, minutesAgo: number): Order {
 }
 
 let store: Order[] = [
-  makeOrder('1', 'pending', 2),
-  makeOrder('2', 'pending', 4),
-  makeOrder('3', 'preparing', 8),
-  makeOrder('4', 'preparing', 12),
-  makeOrder('5', 'ready', 15),
-  makeOrder('6', 'completed', 25),
-  makeOrder('7', 'cancelled', 30),
-  makeOrder('8', 'pending', 1),
+  makeOrder('1', OrderStatus.Pending,   2),
+  makeOrder('2', OrderStatus.Pending,   4),
+  makeOrder('3', OrderStatus.Preparing, 8),
+  makeOrder('4', OrderStatus.Preparing, 12),
+  makeOrder('5', OrderStatus.Ready,     15),
+  makeOrder('6', OrderStatus.Completed, 25),
+  makeOrder('7', OrderStatus.Cancelled, 30),
+  makeOrder('8', OrderStatus.Pending,   1),
 ];
 
 let nextId = 100;
@@ -79,7 +80,7 @@ export function updateMockOrder(id: string, status: OrderStatus): Order | null {
 
 export function addMockOrder(): Order {
   nextId += 1;
-  const order = makeOrder(String(nextId), 'pending', 0);
+  const order = makeOrder(String(nextId), OrderStatus.Pending, 0);
   store = [order, ...store];
   return order;
 }

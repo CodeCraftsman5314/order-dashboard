@@ -1,5 +1,7 @@
-import { getMockOrders, updateMockOrder } from '../../../lib/mockData';
-import type { Order, OrderStats, OrderStatus, OrdersResponse } from '../types';
+import { getMockOrders, updateMockOrder } from '../lib/mockData';
+import { AppError, ErrorCode } from '../lib/errors';
+import { OrderStatus } from '../types/orders';
+import type { Order, OrderStats, OrdersResponse } from '../types/orders';
 
 const PAGE_SIZE = 20;
 const LATENCY_MS = 700;
@@ -33,13 +35,20 @@ export async function fetchOrders({
 export async function fetchOrderStats(): Promise<OrderStats> {
   await delay(LATENCY_MS / 2);
   const all = getMockOrders();
-  return {
-    pending:   all.filter((o) => o.status === 'pending').length,
-    preparing: all.filter((o) => o.status === 'preparing').length,
-    ready:     all.filter((o) => o.status === 'ready').length,
-    completed: all.filter((o) => o.status === 'completed').length,
-    cancelled: all.filter((o) => o.status === 'cancelled').length,
+
+  const stats: OrderStats = {
+    [OrderStatus.Pending]:   0,
+    [OrderStatus.Preparing]: 0,
+    [OrderStatus.Ready]:     0,
+    [OrderStatus.Completed]: 0,
+    [OrderStatus.Cancelled]: 0,
   };
+
+  for (const order of all) {
+    stats[order.status]++;
+  }
+
+  return stats;
 }
 
 export async function updateOrderStatus(
@@ -49,11 +58,11 @@ export async function updateOrderStatus(
   await delay(LATENCY_MS);
 
   if (Math.random() < FAILURE_RATE) {
-    throw new Error('Network error: failed to update order status');
+    throw new AppError('Network error: failed to update order status', ErrorCode.UpdateFailed);
   }
 
   const updated = updateMockOrder(id, status);
-  if (!updated) throw new Error(`Order ${id} not found`);
+  if (!updated) throw new AppError(`Order ${id} not found`, ErrorCode.NotFound);
 
   return updated;
 }

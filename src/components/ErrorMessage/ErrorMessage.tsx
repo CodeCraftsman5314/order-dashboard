@@ -10,7 +10,7 @@ export function ErrorMessage({ message }: ErrorMessageProps) {
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        className="mt-0.5 h-4 w-4 flex-shrink-0"
+        className="mt-0.5 h-4 w-4 shrink-0"
         viewBox="0 0 20 20"
         fill="currentColor"
         aria-hidden="true"

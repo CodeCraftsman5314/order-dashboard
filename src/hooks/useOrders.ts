@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetchOrders, updateOrderStatus } from '../services/ordersApi';
-import type { Order, OrderStatus, OrdersResponse } from '../types';
+import { fetchOrders, updateOrderStatus } from '../api/ordersApi';
+import type { Order, OrderStatus, OrdersResponse } from '../types/orders';
 
 interface UseOrdersOptions {
   status?: OrderStatus;
@@ -41,7 +41,7 @@ export function useOrders({ status, page = 1 }: UseOrdersOptions = {}) {
     },
 
     onError: (_err, _vars, context) => {
-      if (context?.previous) {
+      if (context && context.previous) {
         queryClient.setQueryData(queryKey, context.previous);
       }
     },
@@ -51,15 +51,17 @@ export function useOrders({ status, page = 1 }: UseOrdersOptions = {}) {
     },
   });
 
+  const { orders = [], total = 0 } = query.data ?? {};
+
   return {
-    orders: query.data?.orders ?? [],
-    total: query.data?.total ?? 0,
+    orders,
+    total,
     isLoading: query.isLoading,
     isError: query.isError,
     error: query.error,
     updateStatus: (id: string, newStatus: OrderStatus) =>
       mutation.mutate({ id, newStatus }),
-    updatingId: mutation.isPending ? mutation.variables?.id : null,
+    updatingId: mutation.isPending ? mutation.variables!.id : null,
     updateError: mutation.isError ? mutation.error : null,
   };
 }
